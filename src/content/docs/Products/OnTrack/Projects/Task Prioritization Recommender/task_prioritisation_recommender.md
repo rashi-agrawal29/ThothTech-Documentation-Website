@@ -179,5 +179,3 @@ Tasks with higher priority scores will be recommended first, helping students:
 The Task Prioritization feature enhances OnTrack by providing a structured and intelligent way to
 manage student tasks. By combining urgency, effort, and workload, the system delivers meaningful
 recommendations that improve productivity and academic outcomes.
-
-
