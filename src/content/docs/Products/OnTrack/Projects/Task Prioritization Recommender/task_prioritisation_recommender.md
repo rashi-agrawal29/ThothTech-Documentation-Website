@@ -34,21 +34,110 @@ Tasks are ranked using a **weighted priority scoring system** based on:
 
 ### 4.1 Deadline Urgency
 
-Tasks with closer due dates receive higher priority.
+Tasks with closer due dates receive higher priority. The system calculates urgency based on the number of days remaining until the task due date.
+
+#### Deadline Calculation Logic
+
+1. Retrieve the task due date from the task definition  
+2. Calculate the number of days remaining:
+
+   **days_left = due_date − current_date**
+
+   - The current date is obtained using `Time.zone.today` to ensure timezone consistency  
+   - If no due date is available, the score defaults to **0**
+
+---
+
+#### Deadline Scoring
+
+- ≤ 1 day → Score 100  
+- ≤ 3 days → Score 80  
+- ≤ 7 days → Score 60  
+- ≤ 14 days → Score 40  
+- > 14 days → Score 20  
+
+---
+
+#### Behaviour
+
+- Tasks due very soon receive the highest priority  
+- Tasks with longer deadlines receive lower scores  
+- Ensures students focus on urgent tasks first  
+
+---
 
 ### 4.2 Estimated Effort
 
-Tasks requiring more effort are prioritised earlier to allow sufficient time for completion.  
-This will integrate with the AI-based effort prediction feature.
+Tasks requiring more effort are prioritised earlier to allow sufficient time for completion.
+
+Currently, effort is approximated using **task weighting** as a temporary measure.  
+This will be replaced by the AI-based effort prediction feature in future.
+
+#### Effort Scoring (Current Implementation)
+
+- Weighting ≤ 10 → Score 30  
+- Weighting ≤ 20 → Score 50  
+- Weighting ≤ 40 → Score 70  
+- Weighting > 40 → Score 90  
+
+---
 
 ### 4.3 Workload
 
-Tasks are prioritised higher when a student has multiple competing tasks.
+Tasks are prioritised higher when a student has multiple competing tasks across their enrolled units.
 
-Workload is determined by:
+Workload is determined by a combination of:
 
-- Number of tasks due within a short timeframe
-- Total estimated effort required for upcoming tasks
+- **Number of incomplete tasks** across all active units (task pressure)  
+- **Student target grade** (academic ambition)  
+
+---
+
+#### Target Grade Values
+
+Each project (unit) has a target grade represented numerically:
+
+- 0 → Pass  
+- 1 → Credit  
+- 2 → Distinction  
+- 3 → High Distinction  
+
+The workload calculation uses the **average target grade** across all enrolled units to reflect the student’s overall academic goal.
+
+---
+
+#### Workload Calculation Logic
+
+**1. Task Pressure Score (0–100)**  
+Based on the number of incomplete tasks:
+
+- 0–4 tasks → Score 30 (Low)  
+- 5–9 tasks → Score 60 (Medium)  
+- 10+ tasks → Score 90 (High)  
+
+---
+
+**2. Target Grade Score (0–100)**  
+Based on the student’s average target grade:
+
+- High Distinction (3) → Score 90  
+- Distinction (2) → Score 75  
+- Credit (1) → Score 60  
+- Pass (0) → Score 40  
+
+---
+
+**3. Final Workload Score**
+
+**Workload Score = (0.6 × Task Pressure Score) + (0.4 × Target Grade Score)**
+
+---
+
+#### Behaviour
+
+- Students with more incomplete tasks receive higher workload scores  
+- Students aiming for higher grades receive higher prioritisation sensitivity  
+- Ensures personalised recommendations based on both workload and ambition  
 
 ---
 
@@ -56,7 +145,7 @@ Workload is determined by:
 
 ### 5.1 Priority Score Formula
 
-Priority Score = (0.5 × Deadline Score) + (0.3 × Effort Score) + (0.2 × Workload Score)
+**Priority Score = (0.5 × Deadline Score) + (0.3 × Effort Score) + (0.2 × Workload Score)**
 
 Each factor is converted into a score between **0–100**.
 
@@ -74,14 +163,14 @@ Each factor is converted into a score between **0–100**.
 
 ---
 
-### 5.3 Effort Score (AI-Based)
+### 5.3 Effort Score (Will be replaced with AI Effort Prediction)
 
-| Estimated Effort | Score |
-| ---------------- | ----- |
-| > 10 hours       | 90    |
-| 5–10 hours       | 70    |
-| 2–5 hours        | 50    |
-| < 2 hours        | 30    |
+| Task Weighting | Score |
+|---------------|------|
+| ≤ 10          | 30   |
+| ≤ 20          | 50   |
+| ≤ 40          | 70   |
+| > 40          | 90   |
 
 ---
 
@@ -152,7 +241,7 @@ Task A is prioritised higher than Task B due to a higher overall score.
   Encourages early start on complex tasks
 
 - **Workload (20%)**  
-  Balances tasks across multiple units
+  Balances tasks across multiple units using task pressure and academic ambition  
 
 ---
 
